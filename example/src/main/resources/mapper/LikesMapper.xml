@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zz.project.mapper.LikesMapper">
+
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        sid,
+        djr,
+        djsj,
+        gxr,
+        gxsj,
+        scbj,
+        pxbj,
+        tzzd,
+        bz,
+        yhid, zyid, module
+    </sql>
+
+    <select id="getLikesById" resultType="com.zz.project.entity.Likes">
+        select
+        <include refid="Base_Column_List"/>
+        from zz_likes where sid = #{id} and scbj=0
+    </select>
+
+    <select id="getLikesPageList" parameterType="com.zz.project.param.LikesPageParam" resultType="com.zz.project.entity.Likes">
+        select
+        <include refid="Base_Column_List"/>
+        from zz_likes
+
+
+<where>
+            1=1
+            and scbj = 0
+            <if test="param.beginDate != null and param.beginDate != ''">
+                and to_char( #{params.timeColume} , 'yyyy-mm-dd') &gt;= #{params.startTime}
+            </if>
+            <if test="param.endDate != null and param.endDate != ''">
+                and to_char( #{params.timeColume} , 'yyyy-mm-dd') <= #{params.endTime}
+            </if>
+            <if test="param.yhid != null       and param.yhid != ''">
+                and  yhid = #{param.yhid}
+            </if>
+            <if test="param.zyid != null   ">
+                and  zyid = #{param.zyid}
+            </if>
+            <if test="param.module != null       and param.module != ''">
+                and  module = #{param.module}
+            </if>
+</where>
+    </select>
+
+</mapper>

@@ -1,0 +1,142 @@
+package ${package.ServiceImpl};
+
+import ${package.Entity}.${entity};
+import ${package.Mapper}.${table.mapperName};
+import ${package.Service}.${table.serviceName};
+#if(${cfg.generatorPageParam})
+import ${cfg.pageParamClass};
+#end
+#if(${cfg.generatorQueryVo})
+import ${cfg.queryVoClass};
+#end
+#if(${cfg.generatorStrategy} == 'SINGLE')
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+#end
+#if(${cfg.generatorStrategy} != 'SIMPLE')
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.transaction.annotation.Transactional;
+#end
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+#foreach($field in ${table.fields})
+    #if(  ${field.name.indexOf(${cfg.docCodes})} != -1)
+import com.zz.project.provide.system.service.IBasicsXtzdService;
+import java.util.Iterator;
+        #break
+    #end
+#end
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+import com.zz.common.base.BaseService;
+import com.zz.common.pagination.PageInfo;
+import com.zz.common.pagination.Paging;
+/**
+ * $!{table.comment} 服务实现类
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Service
+public class ${table.serviceImplName} extends BaseService<${table.mapperName}, ${entity}> implements ${table.serviceName} {
+
+    @Autowired
+    private ${table.mapperName} ${cfg.mapperObjectName};
+#foreach($field in ${table.fields})
+    #if(  ${field.name.indexOf(${cfg.docCodes})} != -1)
+    @Resource
+    private IBasicsXtzdService xtzdService;
+        #break
+    #end
+#end
+
+
+
+#if(${cfg.generatorStrategy} != 'SIMPLE')
+
+    @Override
+    public boolean save${entity}(${entity} ${cfg.entityObjectName})   {
+        return this.save(${cfg.entityObjectName});
+    }
+
+    @Override
+    public boolean update${entity}(${entity} ${cfg.entityObjectName})   {
+        return this.updateById(${cfg.entityObjectName});
+    }
+
+    @Override
+    public boolean delete${entity}(String sid)   {
+             ${entity}  obj =this.getById(sid);
+             if(null != obj){
+                 obj.setScbj(1);
+            }
+        return this.saveOrUpdate(obj);
+    }
+
+    @Override
+    public boolean delBatch${entity}(List<String> sids)   {
+        List<${entity}> list = new ArrayList<>(16);
+        for(String sid:sids){
+         ${entity} obj = this.getById(sid);
+            if(obj !=null){
+                obj.setScbj(1);
+                list.add(obj);
+            }
+        }
+        return this.saveOrUpdateBatch(list);
+
+    }
+
+    #if(${cfg.generatorStrategy} != 'SINGLE')
+    @Override
+    public ${entity} get${entity}ById(String sid)   {
+        ${entity} obj = ${cfg.mapperObjectName}.get${entity}ById(sid);
+        #foreach($field in ${table.fields})
+            #if(  ${field.name.indexOf(${cfg.docCodes})} != -1)
+           disposeObj(obj);
+                #break
+            #end
+        #end
+         return obj ;
+    }
+
+    #end
+    @Override
+    public Paging<${entity}> get${entity}PageList(${entity}${cfg.pageParam} ${cfg.entityObjectName}${cfg.pageParam})   {
+            Page<${entity}> page = new PageInfo<>(${cfg.entityObjectName}${cfg.pageParam}, OrderItem.desc(getLambdaColumn(${entity}::getGxsj)));
+        #if(${cfg.generatorStrategy} != 'SINGLE')
+                IPage<${entity}> iPage = ${cfg.mapperObjectName}.get${entity}PageList(page, ${cfg.entityObjectName}${cfg.pageParam});
+        #else
+                LambdaQueryWrapper<${entity}> wrapper = new LambdaQueryWrapper<>();
+                IPage<${entity}> iPage = ${cfg.mapperObjectName}.selectPage(page, wrapper);
+        #end
+
+
+        #foreach($field in ${table.fields})
+            #if(  ${field.name.indexOf(${cfg.docCodes})} != -1)
+                    Iterator<${entity}> iterator = iPage.getRecords().iterator();
+                    while (iterator.hasNext()){
+                     ${entity} info = iterator.next();
+                    disposeObj(info);
+                 }
+            #break
+            #end
+        #end
+            return new Paging<${entity}>(iPage);
+    }
+    private void disposeObj(${entity} obj) {
+        #foreach($field in ${table.fields})
+            #if(  ${field.name.indexOf(${cfg.docCodes})} != -1)
+                #set ($camelColumnName = ${field.propertyName})
+                #set ($camelColumnName = $camelColumnName.substring(0,1).toUpperCase() + $camelColumnName.substring(1,$camelColumnName.length()))
+                obj.set${camelColumnName}String(xtzdService.getXtzdValueByCodes(obj.get${camelColumnName}()));
+
+            #end
+        #end
+     }
+
+    #end
+}
