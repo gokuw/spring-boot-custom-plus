@@ -21,7 +21,7 @@ import com.zz.common.pagination.Paging;
  *  服务实现类
  *
  * @author wjy
- * @since 2021-05-25
+ * @since 2021-07-30
  */
 @Service
 public class LikesServiceImpl extends BaseService<LikesMapper, Likes> implements ILikesService {

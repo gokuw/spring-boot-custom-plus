@@ -15,7 +15,7 @@ import java.io.Serializable;
  *  Mapper 接口
  *
  * @author wjy
- * @since 2021-05-25
+ * @since 2021-07-30
  */
 @Repository
 public interface LikesMapper extends BaseMapper<Likes> {
